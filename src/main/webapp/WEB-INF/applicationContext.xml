@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/rabbit 
+        http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd">
+ 
+    <context:spring-configured />
+    <context:annotation-config />
+    <context:component-scan base-package="com.teste.rabbitmqpoc" />
+    <aop:aspectj-autoproxy />
+    <!-- RabbitMQ common configuration -->
+
+    <rabbit:connection-factory id="connectionFactory" host="rabbitmq"/>
+    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!-- Queues -->
+
+    <rabbit:queue id="springQueue" name="fila" auto-delete="true" durable="true"/>
+
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <rabbit:listener queues="springQueue" ref="messageListener"/>
+    </rabbit:listener-container>
+
+    <bean id="messageListener" class="com.teste.rabbitmqpoc.consumer.ConsumerRabbitMQQueue"/>
+
+    <!-- Bindings -->
+
+    <rabbit:fanout-exchange name="amq.fanout">
+        <rabbit:bindings>
+            <rabbit:binding queue="springQueue"/>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+</beans>
